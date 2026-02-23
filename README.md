@@ -1,63 +1,133 @@
 # Alaska Wildfire Prediction Using Satellite Imagery
 
-**Mentors:** Yali Wang (ywang35 -at- alaska.edu) and Arghya Kusum Das (akdas -at- alaska.edu)
+A hybrid deep learning project to predict wildfire risk in Alaska by 
+integrating optical, thermal, and SAR satellite imagery with ground-based 
+weather data.
 
-**Overview:** Given Alaska’s unique wildfire patterns, where large-scale fires occur annually in boreal forests, tundra, and remote wilderness, predicting fire-prone areas can help mitigate disasters and optimize resource allocation. The presence of vegetation (fuel) is necessary for a fire, but the determining factors are weather conditions (humidity, wind speed, temperature) and an ignition source (lightning, human activity, etc.). 
-This project aims to develop a hybrid deep learning model to predict wildfire risk in Alaska by integrating optical, thermal, and synthetic aperture radar (SAR) satellite imagery with ground-based weather data.
-Traditional wildfire prediction relies on weather data, historical fire records, and human observations, which can be delayed or inaccurate in remote areas like Alaska. In contrast, satellite imagery provides real-time, high-resolution insights into vegetation health, thermal anomalies, burn severity mapping, soil moisture, fuel dryness, and even cloud-penetrating fire detection.
+> **Status:** Research Stage | GSoC 2026 Project  
+> **Mentors:** Yali Wang & Arghya Kusum Das — University of Alaska
 
-Satellite choices:
+---
 
-| Satellite | Resolution | Revisit Frequency | Why Use It? |
-| ------ | ------ | ------ | ------ |
-| Landsat 8 & 9 (NASA/USGS) | 30m (multispectral), 100m (thermal) | 16 days | Tracks pre/post-fire vegetation and burn severity with great detail.|
-| Sentinel-2 (ESA) | 10m (RGB, NIR), 20m (SWIR) | 5 days | High-resolution images for fire risk classification and early warnings. |
-| MODIS (Terra/Aqua, NASA) | 250m (fire detection), 1km (thermal) | Daily | Provides historical fire perimeters and active fire locations. |
-| VIIRS (Suomi NPP & NOAA-20) | 375m (fire detection), 750m (thermal) | Daily | Real-time fire monitoring, capturing active hotspots. |
-| Sentinel-1 (ESA) | 5m - 20m | 6-12 days | SAR imaging for vegetation moisture & burned area mapping. |
-| ALOS-2 (JAXA) | 10m - 100m | 14 days | L-band SAR for detecting dry fuel and terrain changes. |
+## Overview
 
-Additional ground data sources:
+Alaska experiences large-scale wildfires annually across boreal forests, 
+tundra, and remote wilderness. Traditional prediction methods rely on 
+weather data and human observations which can be delayed or inaccurate in 
+remote areas. This project leverages real-time satellite imagery to 
+provide high-resolution insights into vegetation health, thermal anomalies, 
+soil moisture, and fuel dryness — enabling earlier and more accurate 
+wildfire risk prediction.
 
-1). ERA5 Climate Reanalysis (ECMWF): Provides historical & real-time temperature, wind, and humidity data.
+The core output is a model that classifies regions as **High Fire Risk**, 
+**Moderate Risk**, or **No Risk** within a defined time window (1, 3, or 
+6 months).
 
-2). NOAA NWS Weather Data: Near real-time humidity, wind, and temperature.
+---
 
-3). Alaska Fire Service (AFS) Wildfire Data: Historical ignition source data (lightning, human activity).
+## Data Sources
 
-**Current Status:** This project is currently in the research stage.
+This project integrates multi-sensor satellite imagery and ground-based 
+weather data.
 
-**Expected Outcomes:** 
-This project aims to develop a deep-learning model that predicts wildfire risk in Alaska using a combination of satellite and ground-based weather data. The expected outcome of this project would involve both the dataset preprocessing pipeline and the performance of the developed model. Especially, the dataset preprocessing would include how to process the pre-fire and post-fire images efficiently and integrate the ground-based data with satellite imagery. Expected outcomes include:
+| Source | Type | Resolution | Revisit | Use Case |
+|---|---|---|---|---|
+| Sentinel-2 (ESA) | Optical | 10m–20m | 5 days | Fire risk classification, NDVI/NBR |
+| Sentinel-1 (ESA) | SAR | 5m–20m | 6–12 days | Vegetation moisture, burned area |
+| Landsat 8 & 9 (NASA/USGS) | Optical/Thermal | 30m–100m | 16 days | Burn severity mapping |
+| MODIS (NASA) | Thermal | 250m–1km | Daily | Historical fire perimeters |
+| VIIRS (NOAA) | Thermal | 375m–750m | Daily | Real-time hotspot detection |
+| ALOS-2 (JAXA) | SAR (L-band) | 10m–100m | 14 days | Dry fuel, terrain mapping |
+| ERA5 (ECMWF) | Weather Reanalysis | ~31km | Hourly | Temperature, wind, humidity |
+| NOAA NWS | Weather Stations | Point data | Real-time | Near real-time weather |
+| Alaska Fire Service | Fire Records | Vector | — | Historical ignition labels |
 
-Minimum viable product (MVP): 
+For detailed access instructions, API references, and download guidance 
+see [docs/data_sources.md](docs/data_sources.md).
 
-Fire risk classification: Given pre-fire satellite images, the model predicts the probability of a fire occurring within a defined time frame like 1 month, 3 months, or 6 months. The classifications should be "High Fire Risk," "Moderate Risk," or "No Risk."
+---
 
-1). Data pipeline development:
+## Geospatial Reference
 
-Preprocessing satellite images: Band selection, geospatial cropping, cloud removal (For this step, we are mostly interested in analyzing [Sentinel-2 data](https://dataspace.copernicus.eu/explore-data/data-collections/sentinel-data/sentinel-2));
+- **Standard CRS:** EPSG:3338 (Alaska Albers Equal Area)
+- **Primary Study Area:** Interior Alaska (Fairbanks region for development)
+- **Fire Season:** May–August
 
-Synthetic Aperture Radar (SAR) analysis: Extracting fuel moisture & terrain features (For this step, we are mostly interested in extracting information like vegetation density and soil moisture from [Sentinel-1 SAR data](https://dataspace.copernicus.eu/explore-data/data-collections/sentinel-data/sentinel-1));
+For bounding boxes, fire-prone regions, and Alaska-specific geospatial 
+notes see [docs/alaska_region_guide.md](docs/alaska_region_guide.md).
 
-Time-series weather data integration: Incorporating temperature, wind, and humidity. We have access to past decades of weather data for almost the past 30 years for multiple different places in Alaska.
+---
 
-2). Model training and prediction:
+## Expected Outcomes
 
-A hybrid model such as CNN-LSTM that analyzes satellite data and time-series weather trends (CNN-LSTM is just an example. We are open to multiple different types of analysis methodology);
+**Minimum Viable Product (MVP):**
+- Fire risk classification model (High / Moderate / No Risk)
+- Satellite + weather data preprocessing pipeline
+- Web-based GIS dashboard for visualizing fire-prone regions
+- Model performance report with fire risk metrics
 
-A web-based GIS dashboard to visualize fire-prone regions in Alaska;
+**Pipeline Stages:**
+1. Sentinel-2 preprocessing — band selection, cloud removal, geospatial cropping
+2. Sentinel-1 SAR analysis — vegetation density and soil moisture extraction
+3. Weather data integration — 30 years of ERA5 time-series for Alaska
+4. Hybrid model training — CNN-LSTM or equivalent spatial-temporal architecture
 
-A report on model performance and fire risk metrics.
+---
 
-**Required Skills:** Python. Experience with deep learning and machine learning.
+## Quick Start
 
-**Code Challenge:** Experience with multi-band satellite imagery, geospatial data processing (like ArcGIS Pro), and remote sensing.
+### Prerequisites
+- Python 3.8+
+- conda or venv (recommended)
 
-**Source Code:** [https://github.com/YaliWang2019/AK-Satellite-Imagery-Wildfire-Prediction](https://github.com/YaliWang2019/AK-Satellite-Imagery-Wildfire-Prediction) (New Project)
+### Setup
+```bash
+git clone https://github.com/YaliWang2019/AK-Satellite-Imagery-Wildfire-Prediction.git
+cd AK-Satellite-Imagery-Wildfire-Prediction
 
-**Discussion Forum:** [https://github.com/YaliWang2019/AK-Satellite-Imagery-Wildfire-Prediction/discussions](https://github.com/YaliWang2019/AK-Satellite-Imagery-Wildfire-Prediction/discussions)
+# Create environment
+conda create -n ak-wildfire python=3.10
+conda activate ak-wildfire
 
-**Effort:** 350 Hours
+# Install dependencies
+pip install -r requirements.txt
 
-**Difficulty Level:** Medium/Hard
+# Configure API credentials
+cp .env.example .env
+# Edit .env with your Copernicus and ECMWF API keys
+```
+
+For full setup instructions including GDAL installation and 
+troubleshooting see [docs/setup.md](docs/setup.md).
+
+---
+
+## Required Skills
+
+- Python (required)
+- Deep learning and machine learning experience (required)
+- Multi-band satellite imagery processing (preferred)
+- Geospatial data processing — ArcGIS Pro, GDAL, rasterio (preferred)
+- Remote sensing fundamentals (preferred)
+
+---
+
+## Project Info
+
+| Field | Details |
+|---|---|
+| Effort | 350 Hours |
+| Difficulty | Medium / Hard |
+| Program | GSoC 2026 |
+| Discussion Forum | [GitHub Discussions](https://github.com/YaliWang2019/AK-Satellite-Imagery-Wildfire-Prediction/discussions) |
+
+---
+
+## Contributing
+
+We welcome contributions! Please read 
+[CONTRIBUTING.md](CONTRIBUTING.md) before opening a pull request.
+
+This project is currently in the research and setup stage. Good first 
+contributions include documentation improvements, data pipeline 
+prototypes, and exploratory notebooks.
